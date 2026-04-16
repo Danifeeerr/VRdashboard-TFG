@@ -15,7 +15,7 @@ YELLOW = "#FFC046"
 HOVER_COLOR = "#F5A453"
 DARK_TEXT = "#2C2C2A"
 LIGHT_BORDER = "#CCCCCC"
-ROW_BG = "#FAE5D3"
+ROW_BG = "#F5E1CE"
 
 
 class HoverButton(QPushButton):

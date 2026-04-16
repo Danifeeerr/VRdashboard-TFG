@@ -101,7 +101,6 @@ class MainPage(QWidget):
         outer.setContentsMargins(20, 20, 20, 20)
         outer.setSpacing(0)
 
-        # Nom de l'usuari (dalt a l'esquerra)
         self.username_label = QLabel("Nom de l'usuari")
         font_user = QFont()
         font_user.setPointSize(10)

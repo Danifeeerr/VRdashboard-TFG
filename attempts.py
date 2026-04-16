@@ -15,7 +15,7 @@ YELLOW = "#FFC046"
 HOVER_COLOR = "#F5A453"
 DARK_TEXT = "#2C2C2A"
 LIGHT_BORDER = "#CCCCCC"
-ROW_BG = "#FAE5D3"
+ROW_BG = "#F5E1CE"
 
 
 class HoverButton(QPushButton):
@@ -203,7 +203,7 @@ class AttemptsPage(QWidget):
             except ValueError:
                 pass
 
-        # Carregar assignacions de l'usuari (cache per "prèviament completat")
+        # Carregar assignacions de l'usuari (per "prèviament completat")
         self._load_assignation_cache()
 
         self._clear_list()
@@ -256,7 +256,6 @@ class AttemptsPage(QWidget):
         font_row.setPointSize(8)
         font_row.setBold(True)
 
-        # Formatar data
         timestamp = attempt["timestamp"]
         try:
             date_part = timestamp.split("T")[0]

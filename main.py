@@ -17,7 +17,7 @@ class MainWindow(QMainWindow):
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
 
-        # Crear les pàgines passant-li self (MainWindow)
+        # Crear les pàgines passant-li self
         self.login_page = LoginPage(self)
         self.main_page = MainPage(self)
         self.new_user = NewUser(self)
@@ -26,6 +26,7 @@ class MainWindow(QMainWindow):
         self.attempts_page = AttemptsPage(self)
         self.assignation_page = AssignationPage(self)
 
+        # S'afegeixen les pàgines al stack
         self.stack.addWidget(self.login_page)
         self.stack.addWidget(self.main_page)
         self.stack.addWidget(self.new_user)
@@ -33,7 +34,7 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.modify_user)
         self.stack.addWidget(self.attempts_page)
         self.stack.addWidget(self.assignation_page)
-
+    
         self.access_token = None
 
         # Obre la pagina de login a l'iniciar

@@ -200,7 +200,6 @@ class LoginPage(QWidget):
                 if response2.status_code == 200:
                     data2 = response2.json()
                     admin = data2.get("admin")
-                    print(admin)
                     if admin == True:
                         self.main_window.go_to_main(username, token)
                         self.username_input.clear()

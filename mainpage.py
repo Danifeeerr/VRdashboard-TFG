@@ -116,14 +116,18 @@ class MainPage(QWidget):
         btn_crear = HoverButton("Crear usuari")
         btn_crear.setFixedSize(320, 60)
         btn_crear.setCursor(Qt.CursorShape.PointingHandCursor)
+        
         font_big = QFont()
         font_big.setPointSize(13)
         font_big.setBold(True)
+
+        btn_crear.clicked.connect(self.main_window.go_to_new_user)
         btn_crear.setFont(font_big)
 
         btn_llista = HoverButton("Llista d'usuaris")
         btn_llista.setFixedSize(320, 60)
         btn_llista.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_llista.clicked.connect(self.main_window.go_to_user_list)
         btn_llista.setFont(font_big)
 
         center_layout.addWidget(btn_crear, alignment=Qt.AlignmentFlag.AlignHCenter)

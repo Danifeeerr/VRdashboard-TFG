@@ -7,8 +7,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
-API_BASE = "http://10.244.217.1:8000"
-
+from config import API_BASE
 
 ORANGE = "#F58953"
 WHITE = "#FFFFFF"

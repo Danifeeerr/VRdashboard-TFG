@@ -1,3 +1,4 @@
 pruebas/
 venv/
 .env
+__pycache__/

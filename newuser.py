@@ -133,8 +133,8 @@ class NewUser(QWidget):
 
         form_layout.addSpacing(10)
 
-        # Contrassenya
-        lbl_password = QLabel("Contrassenya")
+        # Contrasenya
+        lbl_password = QLabel("Contrasenya")
         lbl_password.setFont(font_label)
         lbl_password.setStyleSheet(f"color: {DARK_TEXT};")
         form_layout.addWidget(lbl_password)
@@ -147,8 +147,8 @@ class NewUser(QWidget):
 
         form_layout.addSpacing(10)
 
-        # Repeteix la contrassenya
-        lbl_repeat = QLabel("Repeteix la contrassenya")
+        # Repeteix la contrasenya
+        lbl_repeat = QLabel("Repeteix la contrasenya")
         lbl_repeat.setFont(font_label)
         lbl_repeat.setStyleSheet(f"color: {DARK_TEXT};")
         form_layout.addWidget(lbl_repeat)
@@ -234,7 +234,7 @@ class NewUser(QWidget):
             return
 
         if password != repeat:
-            self._show_error("Les contrassenyes no coincideixen.")
+            self._show_error("Les contrasenyes no coincideixen.")
             return
 
         self.create_btn.setEnabled(False)

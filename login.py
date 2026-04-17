@@ -122,7 +122,7 @@ class LoginPage(QWidget):
         form_layout.addWidget(self.username_input)
 
         self.password_input = QLineEdit()
-        self.password_input.setPlaceholderText("Contrassenya")
+        self.password_input.setPlaceholderText("Contrasenya")
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.password_input.setFixedHeight(42)
         self.password_input.setStyleSheet(input_style)
@@ -148,7 +148,7 @@ class LoginPage(QWidget):
         self.login_btn.clicked.connect(self.handle_login)
         form_layout.addWidget(self.login_btn)
 
-        note = QLabel("Si has oblidat la teva contrassenya, posa't en contacta amb l'equip de IT")
+        note = QLabel("Si has oblidat la teva contrasenya, posa't en contacte amb l'equip de IT")
         note.setAlignment(Qt.AlignmentFlag.AlignCenter)
         note.setWordWrap(True)
         font_note = QFont()
@@ -176,7 +176,7 @@ class LoginPage(QWidget):
         password = self.password_input.text()
 
         if not username or not password:
-            self._show_error("Si us plau, introdueix el nom d'usuari i la contrassenya.")
+            self._show_error("Si us plau, introdueix el nom d'usuari i la contrasenya.")
             return
 
         self.login_btn.setEnabled(False)
@@ -207,7 +207,7 @@ class LoginPage(QWidget):
                     else:
                         self._show_error("Aquest usuari no és administrador.")
             elif response.status_code == 401:
-                self._show_error("Usuari o contrassenya incorrectes.")
+                self._show_error("Usuari o contrasenya incorrectes.")
             else:
                 self._show_error(f"Error del servidor ({response.status_code}). Torna-ho a intentar.")
         except requests.exceptions.ConnectionError:

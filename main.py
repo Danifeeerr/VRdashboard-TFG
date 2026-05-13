@@ -7,17 +7,18 @@ from userlist import UserList
 from modifyuser import ModifyUser
 from attempts import AttemptsPage
 from assignation import AssignationPage
+from translations import set_lang, tr
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Programa de monitorament")
+        self.setWindowTitle(tr("app_title"))
         self.setMinimumSize(900, 600)
 
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
 
-        # Crear les pàgines passant-li self
         self.login_page = LoginPage(self)
         self.main_page = MainPage(self)
         self.new_user = NewUser(self)
@@ -26,7 +27,6 @@ class MainWindow(QMainWindow):
         self.attempts_page = AttemptsPage(self)
         self.assignation_page = AssignationPage(self)
 
-        # S'afegeixen les pàgines al stack
         self.stack.addWidget(self.login_page)
         self.stack.addWidget(self.main_page)
         self.stack.addWidget(self.new_user)
@@ -34,12 +34,19 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.modify_user)
         self.stack.addWidget(self.attempts_page)
         self.stack.addWidget(self.assignation_page)
-    
-        self.access_token = None
 
-        # Obre la pagina de login a l'iniciar
+        self.access_token = None
         self.stack.setCurrentWidget(self.login_page)
 
+    def change_language(self, lang):
+        set_lang(lang)
+        self.setWindowTitle(tr("app_title"))
+        for page in [
+            self.login_page, self.main_page, self.new_user,
+            self.user_list, self.modify_user, self.attempts_page,
+            self.assignation_page,
+        ]:
+            page.retranslate_ui()
 
     def go_to_main(self, username, token):
         self.access_token = token

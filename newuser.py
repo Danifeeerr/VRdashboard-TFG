@@ -8,6 +8,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
 from config import API_BASE
+from translations import tr
 
 ORANGE = "#F58953"
 WHITE = "#FFFFFF"
@@ -50,7 +51,7 @@ class NewUser(QWidget):
 
     def set_username(self, username):
         self.username = username
-        self.username_label.setText(f"Nom de l'usuari: {username}")
+        self.username_label.setText(tr("logged_user").format(username))
 
     def _build_ui(self):
         root = QVBoxLayout(self)
@@ -67,14 +68,14 @@ class NewUser(QWidget):
         layout = QHBoxLayout(header)
         layout.setContentsMargins(16, 0, 16, 0)
 
-        title = QLabel("Programa de monitorament")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.header_title = QLabel(tr("app_title"))
+        self.header_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font_title = QFont()
         font_title.setPointSize(18)
         font_title.setBold(True)
-        title.setFont(font_title)
-        title.setStyleSheet(f"color: {WHITE}; background: transparent;")
-        layout.addWidget(title, stretch=1)
+        self.header_title.setFont(font_title)
+        self.header_title.setStyleSheet(f"color: {WHITE}; background: transparent;")
+        layout.addWidget(self.header_title, stretch=1)
 
         return header
 
@@ -86,15 +87,13 @@ class NewUser(QWidget):
         outer.setContentsMargins(20, 20, 20, 20)
         outer.setSpacing(0)
 
-        # Nom de l'usuari (dalt a l'esquerra)
-        self.username_label = QLabel("Nom de l'usuari")
+        self.username_label = QLabel("")
         font_user = QFont()
         font_user.setPointSize(10)
         self.username_label.setFont(font_user)
         self.username_label.setStyleSheet(f"color: {DARK_TEXT};")
         outer.addWidget(self.username_label, alignment=Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
 
-        # Formulari centrat
         outer.addStretch()
 
         form_container = QWidget()
@@ -120,11 +119,10 @@ class NewUser(QWidget):
         font_label = QFont()
         font_label.setPointSize(9)
 
-        # Nom del nou usuari
-        lbl_username = QLabel("Nom del nou usuari")
-        lbl_username.setFont(font_label)
-        lbl_username.setStyleSheet(f"color: {DARK_TEXT};")
-        form_layout.addWidget(lbl_username)
+        self.lbl_new_username = QLabel(tr("new_username_label"))
+        self.lbl_new_username.setFont(font_label)
+        self.lbl_new_username.setStyleSheet(f"color: {DARK_TEXT};")
+        form_layout.addWidget(self.lbl_new_username)
 
         self.new_username_input = QLineEdit()
         self.new_username_input.setFixedHeight(36)
@@ -133,11 +131,10 @@ class NewUser(QWidget):
 
         form_layout.addSpacing(10)
 
-        # Contrasenya
-        lbl_password = QLabel("Contrasenya")
-        lbl_password.setFont(font_label)
-        lbl_password.setStyleSheet(f"color: {DARK_TEXT};")
-        form_layout.addWidget(lbl_password)
+        self.lbl_password = QLabel(tr("password_label"))
+        self.lbl_password.setFont(font_label)
+        self.lbl_password.setStyleSheet(f"color: {DARK_TEXT};")
+        form_layout.addWidget(self.lbl_password)
 
         self.password_input = QLineEdit()
         self.password_input.setFixedHeight(36)
@@ -147,11 +144,10 @@ class NewUser(QWidget):
 
         form_layout.addSpacing(10)
 
-        # Repeteix la contrasenya
-        lbl_repeat = QLabel("Repeteix la contrasenya")
-        lbl_repeat.setFont(font_label)
-        lbl_repeat.setStyleSheet(f"color: {DARK_TEXT};")
-        form_layout.addWidget(lbl_repeat)
+        self.lbl_repeat = QLabel(tr("repeat_password_label"))
+        self.lbl_repeat.setFont(font_label)
+        self.lbl_repeat.setStyleSheet(f"color: {DARK_TEXT};")
+        form_layout.addWidget(self.lbl_repeat)
 
         self.repeat_input = QLineEdit()
         self.repeat_input.setFixedHeight(36)
@@ -161,21 +157,20 @@ class NewUser(QWidget):
 
         form_layout.addSpacing(14)
 
-        # Usuari administrador (label + radio buttons)
         admin_row = QHBoxLayout()
         admin_row.setSpacing(10)
-        lbl_admin = QLabel("Usuari administrador")
-        lbl_admin.setFont(font_label)
-        lbl_admin.setStyleSheet(f"color: {DARK_TEXT};")
-        self.radio_si = QRadioButton("Sí")
+        self.lbl_admin = QLabel(tr("admin_user_label"))
+        self.lbl_admin.setFont(font_label)
+        self.lbl_admin.setStyleSheet(f"color: {DARK_TEXT};")
+        self.radio_si = QRadioButton(tr("yes"))
         self.radio_si.setStyleSheet(f"color: {DARK_TEXT}; background: transparent;")
-        self.radio_no = QRadioButton("No")
+        self.radio_no = QRadioButton(tr("no"))
         self.radio_no.setStyleSheet(f"color: {DARK_TEXT}; background: transparent;")
         self.radio_no.setChecked(True)
         self.admin_group = QButtonGroup(self)
         self.admin_group.addButton(self.radio_si)
         self.admin_group.addButton(self.radio_no)
-        admin_row.addWidget(lbl_admin)
+        admin_row.addWidget(self.lbl_admin)
         admin_row.addWidget(self.radio_si)
         admin_row.addWidget(self.radio_no)
         admin_row.addStretch()
@@ -183,7 +178,6 @@ class NewUser(QWidget):
 
         form_layout.addSpacing(20)
 
-        # Missatge d'error
         self.error_label = QLabel("")
         self.error_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.error_label.setWordWrap(True)
@@ -194,7 +188,6 @@ class NewUser(QWidget):
         self.error_label.hide()
         form_layout.addWidget(self.error_label)
 
-        # Botons
         btn_row = QHBoxLayout()
         btn_row.setSpacing(16)
 
@@ -202,26 +195,40 @@ class NewUser(QWidget):
         font_btn.setPointSize(11)
         font_btn.setBold(True)
 
-        self.create_btn = HoverButton("Crear usuari")
+        self.create_btn = HoverButton(tr("create_btn"))
         self.create_btn.setFixedSize(145, 48)
         self.create_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.create_btn.setFont(font_btn)
         self.create_btn.clicked.connect(self.handle_create)
 
-        cancel_btn = HoverButton("Cancel·lar")
-        cancel_btn.setFixedSize(145, 48)
-        cancel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        cancel_btn.setFont(font_btn)
-        cancel_btn.clicked.connect(self.main_window.go_to_main_page)
+        self.cancel_btn = HoverButton(tr("cancel_btn"))
+        self.cancel_btn.setFixedSize(145, 48)
+        self.cancel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.cancel_btn.setFont(font_btn)
+        self.cancel_btn.clicked.connect(self.main_window.go_to_main_page)
 
         btn_row.addWidget(self.create_btn)
-        btn_row.addWidget(cancel_btn)
+        btn_row.addWidget(self.cancel_btn)
         form_layout.addLayout(btn_row)
 
         outer.addWidget(form_container, alignment=Qt.AlignmentFlag.AlignHCenter)
         outer.addStretch()
 
         return body
+
+    def retranslate_ui(self):
+        self.header_title.setText(tr("app_title"))
+        if self.username:
+            self.username_label.setText(tr("logged_user").format(self.username))
+        self.lbl_new_username.setText(tr("new_username_label"))
+        self.lbl_password.setText(tr("password_label"))
+        self.lbl_repeat.setText(tr("repeat_password_label"))
+        self.lbl_admin.setText(tr("admin_user_label"))
+        self.radio_si.setText(tr("yes"))
+        self.radio_no.setText(tr("no"))
+        self.create_btn.setText(tr("create_btn"))
+        self.cancel_btn.setText(tr("cancel_btn"))
+        self.error_label.hide()
 
     def handle_create(self):
         username = self.new_username_input.text().strip()
@@ -230,15 +237,15 @@ class NewUser(QWidget):
         is_admin = self.radio_si.isChecked()
 
         if not username or not password or not repeat:
-            self._show_error("Si us plau, omple tots els camps.")
+            self._show_error(tr("err_fill_all"))
             return
 
         if password != repeat:
-            self._show_error("Les contrasenyes no coincideixen.")
+            self._show_error(tr("err_passwords_no_match"))
             return
 
         self.create_btn.setEnabled(False)
-        self.create_btn.setText("Creant...")
+        self.create_btn.setText(tr("creating"))
         self.error_label.hide()
 
         try:
@@ -254,18 +261,18 @@ class NewUser(QWidget):
                 self.radio_no.setChecked(True)
                 self.main_window.go_to_main_page()
             elif response.status_code == 409:
-                self._show_error("El nom d'usuari ja existeix")
+                self._show_error(tr("err_username_exists"))
             else:
-                self._show_error(f"Error del servidor ({response.status_code}). Torna-ho a intentar.")
+                self._show_error(tr("err_server_retry").format(response.status_code))
         except requests.exceptions.ConnectionError:
-            self._show_error("No s'ha pogut connectar amb el servidor.")
+            self._show_error(tr("err_connection"))
         except requests.exceptions.Timeout:
-            self._show_error("El servidor no ha respost a temps.")
+            self._show_error(tr("err_timeout"))
         except Exception:
-            self._show_error("Error inesperat. Torna-ho a intentar.")
+            self._show_error(tr("err_unexpected_retry"))
         finally:
             self.create_btn.setEnabled(True)
-            self.create_btn.setText("Crear usuari")
+            self.create_btn.setText(tr("create_btn"))
 
     def _show_error(self, message):
         self.error_label.setText(message)

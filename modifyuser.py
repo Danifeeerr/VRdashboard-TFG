@@ -8,6 +8,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
 from config import API_BASE
+from translations import tr
 
 ORANGE = "#F58953"
 WHITE = "#FFFFFF"
@@ -47,12 +48,14 @@ class ModifyUser(QWidget):
         super().__init__()
         self.main_window = main_window
         self.user_id = None
+        self._current_username = None
         self.setStyleSheet(f"background-color: {WHITE};")
         self._build_ui()
 
     def set_user(self, user):
         self.user_id = user["id"]
-        self.title_label.setText(f"Modifica l'usuari ({user['username']})")
+        self._current_username = user["username"]
+        self.title_label.setText(tr("modify_user_title_named").format(user["username"]))
         self.username_input.setText(user["username"])
         if user["admin"]:
             self.radio_si.setChecked(True)
@@ -77,14 +80,14 @@ class ModifyUser(QWidget):
         layout = QHBoxLayout(header)
         layout.setContentsMargins(16, 0, 16, 0)
 
-        title = QLabel("Programa de monitorament")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.header_title = QLabel(tr("app_title"))
+        self.header_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font_title = QFont()
         font_title.setPointSize(18)
         font_title.setBold(True)
-        title.setFont(font_title)
-        title.setStyleSheet(f"color: {WHITE}; background: transparent;")
-        layout.addWidget(title, stretch=1)
+        self.header_title.setFont(font_title)
+        self.header_title.setStyleSheet(f"color: {WHITE}; background: transparent;")
+        layout.addWidget(self.header_title, stretch=1)
 
         return header
 
@@ -125,19 +128,17 @@ class ModifyUser(QWidget):
         font_label = QFont()
         font_label.setPointSize(9)
 
-        # Títol amb nom d'usuari
-        self.title_label = QLabel("Modifica l'usuari")
+        self.title_label = QLabel(tr("modify_user_title"))
         self.title_label.setFont(font_title)
         self.title_label.setStyleSheet(f"color: {DARK_TEXT};")
         form_layout.addWidget(self.title_label)
 
         form_layout.addSpacing(12)
 
-        # Nou nom d'usuari
-        lbl_username = QLabel("Nou nom de l'usuari")
-        lbl_username.setFont(font_label)
-        lbl_username.setStyleSheet(f"color: {DARK_TEXT};")
-        form_layout.addWidget(lbl_username)
+        self.lbl_new_username = QLabel(tr("new_username_field"))
+        self.lbl_new_username.setFont(font_label)
+        self.lbl_new_username.setStyleSheet(f"color: {DARK_TEXT};")
+        form_layout.addWidget(self.lbl_new_username)
 
         self.username_input = QLineEdit()
         self.username_input.setFixedHeight(36)
@@ -146,11 +147,10 @@ class ModifyUser(QWidget):
 
         form_layout.addSpacing(10)
 
-        # Nova contrassenya
-        lbl_password = QLabel("Nova contrassenya de l'usuari")
-        lbl_password.setFont(font_label)
-        lbl_password.setStyleSheet(f"color: {DARK_TEXT};")
-        form_layout.addWidget(lbl_password)
+        self.lbl_password = QLabel(tr("new_password_field"))
+        self.lbl_password.setFont(font_label)
+        self.lbl_password.setStyleSheet(f"color: {DARK_TEXT};")
+        form_layout.addWidget(self.lbl_password)
 
         self.password_input = QLineEdit()
         self.password_input.setFixedHeight(36)
@@ -160,16 +160,15 @@ class ModifyUser(QWidget):
 
         form_layout.addSpacing(10)
 
-        # Fer administrador - radio buttons
         admin_row = QHBoxLayout()
         admin_row.setSpacing(10)
-        lbl_admin = QLabel("Fer administrador a l'usuari")
-        lbl_admin.setFont(font_label)
-        lbl_admin.setStyleSheet(f"color: {DARK_TEXT};")
+        self.lbl_make_admin = QLabel(tr("make_admin_label"))
+        self.lbl_make_admin.setFont(font_label)
+        self.lbl_make_admin.setStyleSheet(f"color: {DARK_TEXT};")
 
-        self.radio_si = QRadioButton("Sí")
+        self.radio_si = QRadioButton(tr("yes"))
         self.radio_si.setStyleSheet(f"color: {DARK_TEXT}; background: transparent;")
-        self.radio_no = QRadioButton("No")
+        self.radio_no = QRadioButton(tr("no"))
         self.radio_no.setStyleSheet(f"color: {DARK_TEXT}; background: transparent;")
         self.radio_no.setChecked(True)
 
@@ -177,7 +176,7 @@ class ModifyUser(QWidget):
         self.admin_group.addButton(self.radio_si)
         self.admin_group.addButton(self.radio_no)
 
-        admin_row.addWidget(lbl_admin)
+        admin_row.addWidget(self.lbl_make_admin)
         admin_row.addWidget(self.radio_si)
         admin_row.addWidget(self.radio_no)
         admin_row.addStretch()
@@ -185,11 +184,10 @@ class ModifyUser(QWidget):
 
         form_layout.addSpacing(10)
 
-        # Contrassenya de l'administrador
-        lbl_admin_pass = QLabel("Contrassenya de l'administrador")
-        lbl_admin_pass.setFont(font_label)
-        lbl_admin_pass.setStyleSheet(f"color: {DARK_TEXT};")
-        form_layout.addWidget(lbl_admin_pass)
+        self.lbl_admin_pass = QLabel(tr("admin_password_label"))
+        self.lbl_admin_pass.setFont(font_label)
+        self.lbl_admin_pass.setStyleSheet(f"color: {DARK_TEXT};")
+        form_layout.addWidget(self.lbl_admin_pass)
 
         self.admin_password_input = QLineEdit()
         self.admin_password_input.setFixedHeight(36)
@@ -199,7 +197,6 @@ class ModifyUser(QWidget):
 
         form_layout.addSpacing(20)
 
-        # Missatge d'error
         self.error_label = QLabel("")
         self.error_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.error_label.setWordWrap(True)
@@ -210,7 +207,6 @@ class ModifyUser(QWidget):
         self.error_label.hide()
         form_layout.addWidget(self.error_label)
 
-        # Botons fila 1: Modificar + Cancel·lar
         font_btn = QFont()
         font_btn.setPointSize(11)
         font_btn.setBold(True)
@@ -218,29 +214,28 @@ class ModifyUser(QWidget):
         btn_row1 = QHBoxLayout()
         btn_row1.setSpacing(16)
 
-        self.modify_btn = HoverButton("Modificar usuari")
+        self.modify_btn = HoverButton(tr("modify_user_btn"))
         self.modify_btn.setFixedSize(145, 48)
         self.modify_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.modify_btn.setFont(font_btn)
         self.modify_btn.clicked.connect(self.handle_modify)
 
-        cancel_btn = HoverButton("Cancel·lar")
-        cancel_btn.setFixedSize(145, 48)
-        cancel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        cancel_btn.setFont(font_btn)
-        cancel_btn.clicked.connect(self.main_window.go_to_user_list)
+        self.cancel_btn = HoverButton(tr("cancel_btn"))
+        self.cancel_btn.setFixedSize(145, 48)
+        self.cancel_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.cancel_btn.setFont(font_btn)
+        self.cancel_btn.clicked.connect(self.main_window.go_to_user_list)
 
         btn_row1.addWidget(self.modify_btn)
-        btn_row1.addWidget(cancel_btn)
+        btn_row1.addWidget(self.cancel_btn)
         form_layout.addLayout(btn_row1)
 
         form_layout.addSpacing(10)
 
-        # Botó fila 2: El·liminar (centrat, vermell)
         btn_row2 = QHBoxLayout()
         btn_row2.setSpacing(0)
 
-        self.delete_btn = HoverButton("El·liminar l'usuari", color=RED, hover_color=RED_HOVER)
+        self.delete_btn = HoverButton(tr("delete_user_btn"), color=RED, hover_color=RED_HOVER)
         self.delete_btn.setFixedSize(145, 48)
         self.delete_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.delete_btn.setFont(font_btn)
@@ -254,6 +249,23 @@ class ModifyUser(QWidget):
 
         return body
 
+    def retranslate_ui(self):
+        self.header_title.setText(tr("app_title"))
+        if self._current_username:
+            self.title_label.setText(tr("modify_user_title_named").format(self._current_username))
+        else:
+            self.title_label.setText(tr("modify_user_title"))
+        self.lbl_new_username.setText(tr("new_username_field"))
+        self.lbl_password.setText(tr("new_password_field"))
+        self.lbl_make_admin.setText(tr("make_admin_label"))
+        self.radio_si.setText(tr("yes"))
+        self.radio_no.setText(tr("no"))
+        self.lbl_admin_pass.setText(tr("admin_password_label"))
+        self.modify_btn.setText(tr("modify_user_btn"))
+        self.cancel_btn.setText(tr("cancel_btn"))
+        self.delete_btn.setText(tr("delete_user_btn"))
+        self.error_label.hide()
+
     def handle_modify(self):
         new_username = self.username_input.text().strip()
         new_password = self.password_input.text()
@@ -261,32 +273,30 @@ class ModifyUser(QWidget):
         is_admin = self.radio_si.isChecked()
 
         if not new_username:
-            self._show_error("El nom d'usuari no pot estar buit.")
+            self._show_error(tr("err_empty_username"))
             return
 
         if not admin_password:
-            self._show_error("Has d'introduir la contrassenya de l'administrador.")
+            self._show_error(tr("err_need_admin_pass"))
             return
 
         self.modify_btn.setEnabled(False)
-        self.modify_btn.setText("Modificant...")
+        self.modify_btn.setText(tr("modifying"))
         self.error_label.hide()
 
         try:
-            # Verificar identitat de l'administrador
             auth = requests.post(
                 f"{API_BASE}/login",
                 json={"username": self.main_window.main_page.username, "password": admin_password},
                 timeout=10,
             )
             if auth.status_code == 401:
-                self._show_error("Contrassenya de l'administrador incorrecta.")
+                self._show_error(tr("err_wrong_admin_pass"))
                 return
             if auth.status_code != 200:
-                self._show_error("Error en verificar l'administrador.")
+                self._show_error(tr("err_verify_admin"))
                 return
 
-            # Fer l'update
             response = requests.post(
                 f"{API_BASE}/users/update",
                 json={
@@ -300,44 +310,43 @@ class ModifyUser(QWidget):
             if response.status_code == 200:
                 self.main_window.go_to_user_list()
             elif response.status_code == 409:
-                self._show_error("Aquest nom d'usuari ja existeix.")
+                self._show_error(tr("err_username_taken"))
             elif response.status_code == 404:
-                self._show_error("Usuari no trobat.")
+                self._show_error(tr("err_user_not_found"))
             else:
-                self._show_error(f"Error del servidor ({response.status_code}).")
+                self._show_error(tr("err_server").format(response.status_code))
         except requests.exceptions.ConnectionError:
-            self._show_error("No s'ha pogut connectar amb el servidor.")
+            self._show_error(tr("err_connection"))
         except requests.exceptions.Timeout:
-            self._show_error("El servidor no ha respost a temps.")
+            self._show_error(tr("err_timeout"))
         except Exception:
-            self._show_error("Error inesperat. Torna-ho a intentar.")
+            self._show_error(tr("err_unexpected_retry"))
         finally:
             self.modify_btn.setEnabled(True)
-            self.modify_btn.setText("Modificar usuari")
+            self.modify_btn.setText(tr("modify_user_btn"))
 
     def handle_delete(self):
         admin_password = self.admin_password_input.text()
 
         if not admin_password:
-            self._show_error("Has d'introduir la contrassenya de l'administrador per eliminar.")
+            self._show_error(tr("err_need_admin_pass_delete"))
             return
 
         self.delete_btn.setEnabled(False)
-        self.delete_btn.setText("Eliminant...")
+        self.delete_btn.setText(tr("deleting"))
         self.error_label.hide()
 
         try:
-            # Verificar identitat de l'administrador
             auth = requests.post(
                 f"{API_BASE}/login",
                 json={"username": self.main_window.main_page.username, "password": admin_password},
                 timeout=10,
             )
             if auth.status_code == 401:
-                self._show_error("Contrassenya de l'administrador incorrecta.")
+                self._show_error(tr("err_wrong_admin_pass"))
                 return
             if auth.status_code != 200:
-                self._show_error("Error en verificar l'administrador.")
+                self._show_error(tr("err_verify_admin"))
                 return
 
             response = requests.delete(
@@ -348,18 +357,18 @@ class ModifyUser(QWidget):
             if response.status_code == 200:
                 self.main_window.go_to_user_list()
             elif response.status_code == 404:
-                self._show_error("Usuari no trobat.")
+                self._show_error(tr("err_user_not_found"))
             else:
-                self._show_error(f"Error del servidor ({response.status_code}).")
+                self._show_error(tr("err_server").format(response.status_code))
         except requests.exceptions.ConnectionError:
-            self._show_error("No s'ha pogut connectar amb el servidor.")
+            self._show_error(tr("err_connection"))
         except requests.exceptions.Timeout:
-            self._show_error("El servidor no ha respost a temps.")
+            self._show_error(tr("err_timeout"))
         except Exception:
-            self._show_error("Error inesperat. Torna-ho a intentar.")
+            self._show_error(tr("err_unexpected_retry"))
         finally:
             self.delete_btn.setEnabled(True)
-            self.delete_btn.setText("El·liminar l'usuari")
+            self.delete_btn.setText(tr("delete_user_btn"))
 
     def _show_error(self, message):
         self.error_label.setText(message)

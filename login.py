@@ -2,12 +2,13 @@ import requests
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QLineEdit, QPushButton, QFrame
+    QLineEdit, QPushButton, QFrame, QComboBox
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
 from config import API_BASE
+from translations import tr, get_lang, LANG_CODES
 
 ORANGE = "#F58953"
 WHITE = "#FFFFFF"
@@ -15,6 +16,24 @@ YELLOW = "#FFC046"
 HOVER_COLOR = "#F5A453"
 DARK_TEXT = "#2C2C2A"
 LIGHT_BORDER = "#CCCCCC"
+
+_COMBO_STYLE = """
+    QComboBox {
+        background-color: white;
+        color: #2C2C2A;
+        border: none;
+        border-radius: 4px;
+        padding: 2px 8px;
+        font-size: 12px;
+    }
+    QComboBox::drop-down { border: none; }
+    QComboBox QAbstractItemView {
+        background: white;
+        color: #2C2C2A;
+        selection-background-color: #F5A453;
+        selection-color: white;
+    }
+"""
 
 
 class HoverButton(QPushButton):
@@ -63,14 +82,30 @@ class LoginPage(QWidget):
         layout = QHBoxLayout(header)
         layout.setContentsMargins(20, 0, 20, 0)
 
-        title = QLabel("Benvingut al programa de monitorament")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        left_spacer = QWidget()
+        left_spacer.setFixedWidth(120)
+        left_spacer.setStyleSheet("background: transparent;")
+        layout.addWidget(left_spacer)
+
+        self.header_title = QLabel(tr("login_welcome"))
+        self.header_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = QFont()
         font.setPointSize(18)
         font.setBold(True)
-        title.setFont(font)
-        title.setStyleSheet(f"color: {WHITE}; background: transparent;")
-        layout.addWidget(title)
+        self.header_title.setFont(font)
+        self.header_title.setStyleSheet(f"color: {WHITE}; background: transparent;")
+        layout.addWidget(self.header_title, stretch=1)
+
+        self.lang_combo = QComboBox()
+        self.lang_combo.addItems([tr("lang_ca"), tr("lang_es"), tr("lang_en")])
+        self.lang_combo.setCurrentIndex(LANG_CODES.index(get_lang()))
+        self.lang_combo.setFixedSize(120, 34)
+        self.lang_combo.setStyleSheet(_COMBO_STYLE)
+        self.lang_combo.currentIndexChanged.connect(
+            lambda i: self.main_window.change_language(LANG_CODES[i])
+        )
+        layout.addWidget(self.lang_combo)
+
         return header
 
     def _body(self):
@@ -90,15 +125,15 @@ class LoginPage(QWidget):
         form_layout.setContentsMargins(40, 40, 40, 40)
         form_layout.setSpacing(20)
 
-        subtitle = QLabel("Inicia sessió amb el teu compte d'administrador")
-        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle.setWordWrap(True)
+        self.subtitle = QLabel(tr("login_subtitle"))
+        self.subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.subtitle.setWordWrap(True)
         font_sub = QFont()
         font_sub.setPointSize(14)
         font_sub.setBold(True)
-        subtitle.setFont(font_sub)
-        subtitle.setStyleSheet(f"color: {DARK_TEXT};")
-        form_layout.addWidget(subtitle)
+        self.subtitle.setFont(font_sub)
+        self.subtitle.setStyleSheet(f"color: {DARK_TEXT};")
+        form_layout.addWidget(self.subtitle)
         form_layout.addSpacing(10)
 
         input_style = f"""
@@ -116,13 +151,13 @@ class LoginPage(QWidget):
         """
 
         self.username_input = QLineEdit()
-        self.username_input.setPlaceholderText("Nom d'usuari")
+        self.username_input.setPlaceholderText(tr("username_placeholder"))
         self.username_input.setFixedHeight(42)
         self.username_input.setStyleSheet(input_style)
         form_layout.addWidget(self.username_input)
 
         self.password_input = QLineEdit()
-        self.password_input.setPlaceholderText("Contrasenya")
+        self.password_input.setPlaceholderText(tr("password_placeholder"))
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.password_input.setFixedHeight(42)
         self.password_input.setStyleSheet(input_style)
@@ -138,7 +173,7 @@ class LoginPage(QWidget):
         self.error_label.hide()
         form_layout.addWidget(self.error_label)
 
-        self.login_btn = HoverButton("Iniciar sessió")
+        self.login_btn = HoverButton(tr("login_btn"))
         self.login_btn.setFixedHeight(48)
         self.login_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         font_btn = QFont()
@@ -148,14 +183,14 @@ class LoginPage(QWidget):
         self.login_btn.clicked.connect(self.handle_login)
         form_layout.addWidget(self.login_btn)
 
-        note = QLabel("Si has oblidat la teva contrasenya, posa't en contacte amb l'equip de IT")
-        note.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        note.setWordWrap(True)
+        self.note = QLabel(tr("forgot_password"))
+        self.note.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.note.setWordWrap(True)
         font_note = QFont()
         font_note.setPointSize(10)
-        note.setFont(font_note)
-        note.setStyleSheet(f"color: {DARK_TEXT}; background: transparent;")
-        form_layout.addWidget(note)
+        self.note.setFont(font_note)
+        self.note.setStyleSheet(f"color: {DARK_TEXT}; background: transparent;")
+        form_layout.addWidget(self.note)
 
         v_center.addWidget(form_container, alignment=Qt.AlignmentFlag.AlignHCenter)
         v_center.addStretch()
@@ -171,16 +206,28 @@ class LoginPage(QWidget):
         footer.setStyleSheet(f"background-color: {ORANGE}; border: none;")
         return footer
 
+    def retranslate_ui(self):
+        self.header_title.setText(tr("login_welcome"))
+        self.subtitle.setText(tr("login_subtitle"))
+        self.username_input.setPlaceholderText(tr("username_placeholder"))
+        self.password_input.setPlaceholderText(tr("password_placeholder"))
+        self.login_btn.setText(tr("login_btn"))
+        self.note.setText(tr("forgot_password"))
+        self.error_label.hide()
+        self.lang_combo.blockSignals(True)
+        self.lang_combo.setCurrentIndex(LANG_CODES.index(get_lang()))
+        self.lang_combo.blockSignals(False)
+
     def handle_login(self):
         username = self.username_input.text().strip()
         password = self.password_input.text()
 
         if not username or not password:
-            self._show_error("Si us plau, introdueix el nom d'usuari i la contrasenya.")
+            self._show_error(tr("err_fill_credentials"))
             return
 
         self.login_btn.setEnabled(False)
-        self.login_btn.setText("Iniciant sessió...")
+        self.login_btn.setText(tr("logging_in"))
         self.error_label.hide()
 
         try:
@@ -205,20 +252,20 @@ class LoginPage(QWidget):
                         self.username_input.clear()
                         self.password_input.clear()
                     else:
-                        self._show_error("Aquest usuari no és administrador.")
+                        self._show_error(tr("err_not_admin"))
             elif response.status_code == 401:
-                self._show_error("Usuari o contrasenya incorrectes.")
+                self._show_error(tr("err_wrong_credentials"))
             else:
-                self._show_error(f"Error del servidor ({response.status_code}). Torna-ho a intentar.")
+                self._show_error(tr("err_server_retry").format(response.status_code))
         except requests.exceptions.ConnectionError:
-            self._show_error("No s'ha pogut connectar amb el servidor. Comprova la VPN.")
+            self._show_error(tr("err_connection_vpn"))
         except requests.exceptions.Timeout:
-            self._show_error("El servidor no ha respost a temps. Torna-ho a intentar.")
+            self._show_error(tr("err_timeout_retry"))
         except Exception:
-            self._show_error("Error inesperat. Torna-ho a intentar.")
+            self._show_error(tr("err_unexpected_retry"))
         finally:
             self.login_btn.setEnabled(True)
-            self.login_btn.setText("Iniciar sessió")
+            self.login_btn.setText(tr("login_btn"))
 
     def _show_error(self, message):
         self.error_label.setText(message)

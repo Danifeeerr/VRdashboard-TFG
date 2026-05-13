@@ -8,6 +8,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
 from config import API_BASE
+from translations import tr
 
 ORANGE = "#F58953"
 WHITE = "#FFFFFF"
@@ -48,6 +49,7 @@ class AttemptsPage(QWidget):
         self.user = None
         self._training_cache = {}
         self._assignation_cache = {}
+        self._displayed_attempts = []
         self.setStyleSheet(f"background-color: {WHITE};")
         self._build_ui()
 
@@ -55,7 +57,8 @@ class AttemptsPage(QWidget):
         self.user = user
         self._training_cache = {}
         self._assignation_cache = {}
-        self.title_label.setText(f"Intents de  ({user['username']})")
+        self._displayed_attempts = []
+        self.title_label.setText(tr("attempts_title_named").format(user["username"]))
         self.date_filter_input.clear()
         self.load_attempts()
 
@@ -74,24 +77,24 @@ class AttemptsPage(QWidget):
         layout = QHBoxLayout(header)
         layout.setContentsMargins(16, 0, 16, 0)
 
-        title = QLabel("Programa de monitorament")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.header_title = QLabel(tr("app_title"))
+        self.header_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font_title = QFont()
         font_title.setPointSize(18)
         font_title.setBold(True)
-        title.setFont(font_title)
-        title.setStyleSheet(f"color: {WHITE}; background: transparent;")
-        layout.addWidget(title, stretch=1)
+        self.header_title.setFont(font_title)
+        self.header_title.setStyleSheet(f"color: {WHITE}; background: transparent;")
+        layout.addWidget(self.header_title, stretch=1)
 
-        btn_back = HoverButton("Llista d'usuaris")
-        btn_back.setFixedSize(150, 40)
-        btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_back = HoverButton(tr("user_list_btn_back"))
+        self.btn_back.setFixedSize(150, 40)
+        self.btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
         font_btn = QFont()
         font_btn.setPointSize(10)
         font_btn.setBold(True)
-        btn_back.setFont(font_btn)
-        btn_back.clicked.connect(self.main_window.go_to_user_list)
-        layout.addWidget(btn_back)
+        self.btn_back.setFont(font_btn)
+        self.btn_back.clicked.connect(self.main_window.go_to_user_list)
+        layout.addWidget(self.btn_back)
 
         return header
 
@@ -103,8 +106,7 @@ class AttemptsPage(QWidget):
         outer.setContentsMargins(20, 20, 20, 20)
         outer.setSpacing(12)
 
-        # Títol
-        self.title_label = QLabel("Intents de")
+        self.title_label = QLabel(tr("attempts_title"))
         font_title = QFont()
         font_title.setPointSize(10)
         font_title.setBold(True)
@@ -112,7 +114,6 @@ class AttemptsPage(QWidget):
         self.title_label.setStyleSheet(f"color: {DARK_TEXT};")
         outer.addWidget(self.title_label, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        # Filtre per data
         filter_frame = QFrame()
         filter_frame.setStyleSheet(f"border: 1px solid {LIGHT_BORDER}; border-radius: 4px; background: {WHITE};")
         filter_frame.setFixedHeight(50)
@@ -120,14 +121,14 @@ class AttemptsPage(QWidget):
         filter_layout.setContentsMargins(12, 0, 12, 0)
         filter_layout.setSpacing(12)
 
-        lbl_data = QLabel("Data de l'intent")
-        lbl_data.setStyleSheet(f"color: {DARK_TEXT}; border: none;")
+        self.lbl_data_filter = QLabel(tr("date_filter_label"))
+        self.lbl_data_filter.setStyleSheet(f"color: {DARK_TEXT}; border: none;")
         font_lbl = QFont()
         font_lbl.setPointSize(9)
-        lbl_data.setFont(font_lbl)
+        self.lbl_data_filter.setFont(font_lbl)
 
         self.date_filter_input = QLineEdit()
-        self.date_filter_input.setPlaceholderText("dd/mm/aaaa")
+        self.date_filter_input.setPlaceholderText(tr("date_placeholder"))
         self.date_filter_input.setFixedSize(140, 30)
         self.date_filter_input.setStyleSheet(f"""
             QLineEdit {{
@@ -140,23 +141,22 @@ class AttemptsPage(QWidget):
             }}
         """)
 
-        btn_cerca = HoverButton("Cerca")
-        btn_cerca.setFixedSize(90, 34)
-        btn_cerca.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_cerca = HoverButton(tr("search_btn"))
+        self.btn_cerca.setFixedSize(90, 34)
+        self.btn_cerca.setCursor(Qt.CursorShape.PointingHandCursor)
         font_btn2 = QFont()
         font_btn2.setPointSize(10)
         font_btn2.setBold(True)
-        btn_cerca.setFont(font_btn2)
-        btn_cerca.clicked.connect(self.load_attempts)
+        self.btn_cerca.setFont(font_btn2)
+        self.btn_cerca.clicked.connect(self.load_attempts)
 
-        filter_layout.addWidget(lbl_data)
+        filter_layout.addWidget(self.lbl_data_filter)
         filter_layout.addWidget(self.date_filter_input)
-        filter_layout.addWidget(btn_cerca)
+        filter_layout.addWidget(self.btn_cerca)
         filter_layout.addStretch()
 
         outer.addWidget(filter_frame)
 
-        # Scroll amb la llista d'intents
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setStyleSheet("border: none;")
@@ -186,6 +186,7 @@ class AttemptsPage(QWidget):
                 timeout=10,
             )
             if response.status_code == 404:
+                self._displayed_attempts = []
                 self._clear_list()
                 return
             if response.status_code != 200:
@@ -194,7 +195,6 @@ class AttemptsPage(QWidget):
         except Exception:
             return
 
-        # Filtre per data (format dd/mm/aaaa → yyyy-mm-dd)
         if date_filter:
             try:
                 day, month, year = date_filter.split("/")
@@ -203,12 +203,13 @@ class AttemptsPage(QWidget):
             except ValueError:
                 pass
 
-        # Carregar assignacions de l'usuari (per "prèviament completat")
         self._load_assignation_cache()
 
+        self._displayed_attempts = []
         self._clear_list()
         for attempt in attempts:
             training = self._get_training(attempt["trainingid"])
+            self._displayed_attempts.append((attempt, training))
             row = self._build_row(attempt, training)
             self.list_layout.insertWidget(self.list_layout.count() - 1, row)
 
@@ -268,10 +269,10 @@ class AttemptsPage(QWidget):
         error_limit = training["error_limit"] if training else None
 
         assignation = self._assignation_cache.get(attempt["trainingid"])
-        prev_completat = "Sí" if assignation and assignation.get("completed") else "No"
+        prev_completat = tr("yes") if assignation and assignation.get("completed") else tr("no")
 
         if error_limit is not None:
-            aprovat = "Sí" if attempt["number_errors"] <= error_limit else "No"
+            aprovat = tr("yes") if attempt["number_errors"] <= error_limit else tr("no")
         else:
             aprovat = "?"
 
@@ -281,15 +282,15 @@ class AttemptsPage(QWidget):
             lbl.setStyleSheet(f"color: {DARK_TEXT};")
             return lbl
 
-        layout.addWidget(make_label(f"Data: {data_str}"))
-        layout.addWidget(make_label(f"Entrenament: {training_name}"))
-        layout.addWidget(make_label(f"Prèviament completat: {prev_completat}"))
-        layout.addWidget(make_label(f"Temps emprat en hores: {attempt['time_spent']}"))
-        layout.addWidget(make_label(f"Número d'errors: {attempt['number_errors']}"))
-        layout.addWidget(make_label(f"Aprovat: {aprovat}"))
+        layout.addWidget(make_label(tr("date_col").format(data_str)))
+        layout.addWidget(make_label(tr("training_col").format(training_name)))
+        layout.addWidget(make_label(tr("prev_completed_col").format(prev_completat)))
+        layout.addWidget(make_label(tr("time_spent_col").format(attempt["time_spent"])))
+        layout.addWidget(make_label(tr("errors_col").format(attempt["number_errors"])))
+        layout.addWidget(make_label(tr("passed_col").format(aprovat)))
         layout.addStretch()
 
-        btn_eliminar = HoverButton("Eliminar")
+        btn_eliminar = HoverButton(tr("delete_btn"))
         btn_eliminar.setFixedSize(90, 36)
         btn_eliminar.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_eliminar.setFont(font_row)
@@ -313,6 +314,24 @@ class AttemptsPage(QWidget):
                 self.load_attempts()
         except Exception:
             pass
+
+    def retranslate_ui(self):
+        self.header_title.setText(tr("app_title"))
+        self.btn_back.setText(tr("user_list_btn_back"))
+        self.lbl_data_filter.setText(tr("date_filter_label"))
+        self.date_filter_input.setPlaceholderText(tr("date_placeholder"))
+        self.btn_cerca.setText(tr("search_btn"))
+        if self.user:
+            self.title_label.setText(tr("attempts_title_named").format(self.user["username"]))
+        else:
+            self.title_label.setText(tr("attempts_title"))
+        self._rebuild_rows()
+
+    def _rebuild_rows(self):
+        self._clear_list()
+        for attempt, training in self._displayed_attempts:
+            row = self._build_row(attempt, training)
+            self.list_layout.insertWidget(self.list_layout.count() - 1, row)
 
     def _clear_list(self):
         while self.list_layout.count() > 1:

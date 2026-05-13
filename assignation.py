@@ -9,6 +9,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
 from config import API_BASE
+from translations import tr
 
 ORANGE = "#F58953"
 WHITE = "#FFFFFF"
@@ -47,12 +48,13 @@ class AssignationPage(QWidget):
         super().__init__()
         self.main_window = main_window
         self.user = None
+        self._cached_trainings = []
         self.setStyleSheet(f"background-color: {WHITE};")
         self._build_ui()
 
     def set_user(self, user):
         self.user = user
-        self.title_label.setText(f"Assigna un entrenament per a l'usuari ({user['username']})")
+        self.title_label.setText(tr("assign_title_named").format(user["username"]))
         self.load_trainings()
 
     def _build_ui(self):
@@ -70,24 +72,24 @@ class AssignationPage(QWidget):
         layout = QHBoxLayout(header)
         layout.setContentsMargins(16, 0, 16, 0)
 
-        title = QLabel("Programa de monitorament")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.header_title = QLabel(tr("app_title"))
+        self.header_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font_title = QFont()
         font_title.setPointSize(18)
         font_title.setBold(True)
-        title.setFont(font_title)
-        title.setStyleSheet(f"color: {WHITE}; background: transparent;")
-        layout.addWidget(title, stretch=1)
+        self.header_title.setFont(font_title)
+        self.header_title.setStyleSheet(f"color: {WHITE}; background: transparent;")
+        layout.addWidget(self.header_title, stretch=1)
 
-        btn_back = HoverButton("Llista d'usuaris")
-        btn_back.setFixedSize(150, 40)
-        btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.btn_back = HoverButton(tr("user_list_btn_back"))
+        self.btn_back.setFixedSize(150, 40)
+        self.btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
         font_btn = QFont()
         font_btn.setPointSize(10)
         font_btn.setBold(True)
-        btn_back.setFont(font_btn)
-        btn_back.clicked.connect(self.main_window.go_to_user_list)
-        layout.addWidget(btn_back)
+        self.btn_back.setFont(font_btn)
+        self.btn_back.clicked.connect(self.main_window.go_to_user_list)
+        layout.addWidget(self.btn_back)
 
         return header
 
@@ -99,7 +101,7 @@ class AssignationPage(QWidget):
         outer.setContentsMargins(20, 20, 20, 20)
         outer.setSpacing(16)
 
-        self.title_label = QLabel("Assigna un entrenament per a l'usuari")
+        self.title_label = QLabel(tr("assign_title"))
         font_title = QFont()
         font_title.setPointSize(10)
         font_title.setBold(True)
@@ -107,7 +109,6 @@ class AssignationPage(QWidget):
         self.title_label.setStyleSheet(f"color: {DARK_TEXT};")
         outer.addWidget(self.title_label, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        # Missatge d'error/èxit
         self.msg_label = QLabel("")
         font_msg = QFont()
         font_msg.setPointSize(9)
@@ -116,7 +117,6 @@ class AssignationPage(QWidget):
         self.msg_label.hide()
         outer.addWidget(self.msg_label, alignment=Qt.AlignmentFlag.AlignLeft)
 
-        # Scroll amb les targetes
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setStyleSheet("border: none;")
@@ -134,7 +134,6 @@ class AssignationPage(QWidget):
         return body
 
     def load_trainings(self):
-        # Netejar grid
         while self.grid_layout.count():
             item = self.grid_layout.takeAt(0)
             if item.widget():
@@ -150,6 +149,7 @@ class AssignationPage(QWidget):
         except Exception:
             return
 
+        self._cached_trainings = trainings
         cols = 4
         for i, training in enumerate(trainings):
             card = self._build_card(training)
@@ -183,12 +183,12 @@ class AssignationPage(QWidget):
         lbl_name.setWordWrap(True)
         layout.addWidget(lbl_name)
 
-        lbl_hours = QLabel(f"Hores aproximades: {training['hours']}")
+        lbl_hours = QLabel(tr("approx_hours").format(training["hours"]))
         lbl_hours.setFont(font_info)
         lbl_hours.setStyleSheet(f"color: {DARK_TEXT}; border: none;")
         layout.addWidget(lbl_hours)
 
-        lbl_errors = QLabel(f"Límit d'errors: {training['error_limit']}")
+        lbl_errors = QLabel(tr("error_limit").format(training["error_limit"]))
         lbl_errors.setFont(font_info)
         lbl_errors.setStyleSheet(f"color: {DARK_TEXT}; border: none;")
         layout.addWidget(lbl_errors)
@@ -199,7 +199,7 @@ class AssignationPage(QWidget):
         font_btn.setPointSize(11)
         font_btn.setBold(True)
 
-        btn = HoverButton("Assignar")
+        btn = HoverButton(tr("assign_btn"))
         btn.setFixedHeight(36)
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
         btn.setFont(font_btn)
@@ -223,17 +223,37 @@ class AssignationPage(QWidget):
                 timeout=10,
             )
             if response.status_code == 200:
-                self._show_msg(f"Entrenament '{training['name']}' assignat correctament.", success=True)
+                self._show_msg(tr("success_assigned").format(training["name"]), success=True)
             elif response.status_code == 409:
-                self._show_msg("Aquest usuari ja té aquest entrenament assignat.")
+                self._show_msg(tr("err_already_assigned"))
             else:
-                self._show_msg(f"Error del servidor ({response.status_code}).")
+                self._show_msg(tr("err_server").format(response.status_code))
         except requests.exceptions.ConnectionError:
-            self._show_msg("No s'ha pogut connectar amb el servidor.")
+            self._show_msg(tr("err_connection"))
         except requests.exceptions.Timeout:
-            self._show_msg("El servidor no ha respost a temps.")
+            self._show_msg(tr("err_timeout"))
         except Exception:
-            self._show_msg("Error inesperat.")
+            self._show_msg(tr("err_unexpected"))
+
+    def retranslate_ui(self):
+        self.header_title.setText(tr("app_title"))
+        self.btn_back.setText(tr("user_list_btn_back"))
+        if self.user:
+            self.title_label.setText(tr("assign_title_named").format(self.user["username"]))
+        else:
+            self.title_label.setText(tr("assign_title"))
+        self.msg_label.hide()
+        self._rebuild_cards()
+
+    def _rebuild_cards(self):
+        while self.grid_layout.count():
+            item = self.grid_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        cols = 4
+        for i, training in enumerate(self._cached_trainings):
+            card = self._build_card(training)
+            self.grid_layout.addWidget(card, i // cols, i % cols)
 
     def _show_msg(self, text, success=False):
         color = "#5CB85C" if success else "#D9534F"

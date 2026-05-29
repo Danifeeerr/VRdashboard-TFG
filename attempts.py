@@ -48,7 +48,6 @@ class AttemptsPage(QWidget):
         self.main_window = main_window
         self.user = None
         self._training_cache = {}
-        self._assignation_cache = {}
         self._displayed_attempts = []
         self.setStyleSheet(f"background-color: {WHITE};")
         self._build_ui()
@@ -56,7 +55,6 @@ class AttemptsPage(QWidget):
     def set_user(self, user):
         self.user = user
         self._training_cache = {}
-        self._assignation_cache = {}
         self._displayed_attempts = []
         self.title_label.setText(tr("attempts_title_named").format(user["username"]))
         self.date_filter_input.clear()
@@ -195,35 +193,27 @@ class AttemptsPage(QWidget):
         except Exception:
             return
 
+        all_attempts = attempts
+
         if date_filter:
             try:
                 day, month, year = date_filter.split("/")
                 date_str = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
-                attempts = [a for a in attempts if a["timestamp"].startswith(date_str)]
+                attempts = [a for a in all_attempts if a["timestamp"].startswith(date_str)]
             except ValueError:
                 pass
-
-        self._load_assignation_cache()
 
         self._displayed_attempts = []
         self._clear_list()
         for attempt in attempts:
             training = self._get_training(attempt["trainingid"])
-            self._displayed_attempts.append((attempt, training))
-            row = self._build_row(attempt, training)
-            self.list_layout.insertWidget(self.list_layout.count() - 1, row)
-
-    def _load_assignation_cache(self):
-        try:
-            response = requests.get(
-                f"{API_BASE}/assignation/{self.user['id']}",
-                timeout=10,
+            prev = any(
+                a["trainingid"] == attempt["trainingid"] and a["timestamp"] < attempt["timestamp"]
+                for a in all_attempts
             )
-            if response.status_code == 200:
-                for a in response.json():
-                    self._assignation_cache[a["trainingid"]] = a
-        except Exception:
-            pass
+            self._displayed_attempts.append((attempt, training, prev))
+            row = self._build_row(attempt, training, prev)
+            self.list_layout.insertWidget(self.list_layout.count() - 1, row)
 
     def _get_training(self, training_id):
         if training_id in self._training_cache:
@@ -238,7 +228,7 @@ class AttemptsPage(QWidget):
             pass
         return None
 
-    def _build_row(self, attempt, training):
+    def _build_row(self, attempt, training, previously_completed=False):
         row = QFrame()
         row.setStyleSheet(f"""
             QFrame {{
@@ -268,8 +258,7 @@ class AttemptsPage(QWidget):
         training_name = training["name"] if training else f"ID {attempt['trainingid']}"
         error_limit = training["error_limit"] if training else None
 
-        assignation = self._assignation_cache.get(attempt["trainingid"])
-        prev_completat = tr("yes") if assignation and assignation.get("completed") else tr("no")
+        prev_completat = tr("yes") if previously_completed else tr("no")
 
         if error_limit is not None:
             aprovat = tr("yes") if attempt["number_errors"] <= error_limit else tr("no")
@@ -329,8 +318,8 @@ class AttemptsPage(QWidget):
 
     def _rebuild_rows(self):
         self._clear_list()
-        for attempt, training in self._displayed_attempts:
-            row = self._build_row(attempt, training)
+        for attempt, training, prev in self._displayed_attempts:
+            row = self._build_row(attempt, training, prev)
             self.list_layout.insertWidget(self.list_layout.count() - 1, row)
 
     def _clear_list(self):

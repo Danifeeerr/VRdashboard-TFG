@@ -64,6 +64,10 @@ class ModifyUser(QWidget):
         self.password_input.clear()
         self.admin_password_input.clear()
         self.error_label.hide()
+        self.confirm_frame.hide()
+        self.modify_btn.show()
+        self.cancel_btn.show()
+        self.delete_btn.show()
 
     def _build_ui(self):
         root = QVBoxLayout(self)
@@ -244,6 +248,43 @@ class ModifyUser(QWidget):
         btn_row2.addWidget(self.delete_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
         form_layout.addLayout(btn_row2)
 
+        form_layout.addSpacing(10)
+
+        self.confirm_frame = QFrame()
+        self.confirm_frame.setStyleSheet("background: transparent;")
+        confirm_layout = QVBoxLayout(self.confirm_frame)
+        confirm_layout.setContentsMargins(0, 0, 0, 0)
+        confirm_layout.setSpacing(12)
+
+        self.confirm_label = QLabel("")
+        self.confirm_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.confirm_label.setWordWrap(True)
+        self.confirm_label.setFont(font_btn)
+        self.confirm_label.setStyleSheet(f"color: {DARK_TEXT}; background: transparent;")
+        confirm_layout.addWidget(self.confirm_label)
+
+        confirm_btn_row = QHBoxLayout()
+        confirm_btn_row.setSpacing(16)
+
+        self.confirm_yes_btn = HoverButton(tr("confirm_delete_yes_btn"), color=RED, hover_color=RED_HOVER)
+        self.confirm_yes_btn.setFixedSize(145, 48)
+        self.confirm_yes_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.confirm_yes_btn.setFont(font_btn)
+        self.confirm_yes_btn.clicked.connect(self._do_delete)
+
+        self.confirm_no_btn = HoverButton(tr("confirm_delete_no_btn"))
+        self.confirm_no_btn.setFixedSize(145, 48)
+        self.confirm_no_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.confirm_no_btn.setFont(font_btn)
+        self.confirm_no_btn.clicked.connect(self._cancel_confirm)
+
+        confirm_btn_row.addWidget(self.confirm_yes_btn)
+        confirm_btn_row.addWidget(self.confirm_no_btn)
+        confirm_layout.addLayout(confirm_btn_row)
+
+        self.confirm_frame.hide()
+        form_layout.addWidget(self.confirm_frame)
+
         outer.addWidget(form_container, alignment=Qt.AlignmentFlag.AlignHCenter)
         outer.addStretch()
 
@@ -264,6 +305,10 @@ class ModifyUser(QWidget):
         self.modify_btn.setText(tr("modify_user_btn"))
         self.cancel_btn.setText(tr("cancel_btn"))
         self.delete_btn.setText(tr("delete_user_btn"))
+        self.confirm_yes_btn.setText(tr("confirm_delete_yes_btn"))
+        self.confirm_no_btn.setText(tr("confirm_delete_no_btn"))
+        if self.confirm_frame.isVisible() and self._current_username:
+            self.confirm_label.setText(tr("confirm_delete_msg").format(self._current_username))
         self.error_label.hide()
 
     def handle_modify(self):
@@ -349,17 +394,12 @@ class ModifyUser(QWidget):
                 self._show_error(tr("err_verify_admin"))
                 return
 
-            response = requests.delete(
-                f"{API_BASE}/users/delete/{self.user_id}",
-                params={"token": self.main_window.access_token},
-                timeout=10,
-            )
-            if response.status_code == 200:
-                self.main_window.go_to_user_list()
-            elif response.status_code == 404:
-                self._show_error(tr("err_user_not_found"))
-            else:
-                self._show_error(tr("err_server").format(response.status_code))
+            self.modify_btn.hide()
+            self.cancel_btn.hide()
+            self.delete_btn.hide()
+            self.confirm_label.setText(tr("confirm_delete_msg").format(self._current_username))
+            self.confirm_frame.show()
+
         except requests.exceptions.ConnectionError:
             self._show_error(tr("err_connection"))
         except requests.exceptions.Timeout:
@@ -369,6 +409,44 @@ class ModifyUser(QWidget):
         finally:
             self.delete_btn.setEnabled(True)
             self.delete_btn.setText(tr("delete_user_btn"))
+
+    def _do_delete(self):
+        self.confirm_yes_btn.setEnabled(False)
+        self.confirm_yes_btn.setText(tr("deleting"))
+        self.error_label.hide()
+
+        try:
+            response = requests.delete(
+                f"{API_BASE}/users/delete/{self.user_id}",
+                params={"token": self.main_window.access_token},
+                timeout=10,
+            )
+            if response.status_code == 200:
+                self.main_window.go_to_user_list()
+            elif response.status_code == 404:
+                self._show_error(tr("err_user_not_found"))
+                self._cancel_confirm()
+            else:
+                self._show_error(tr("err_server").format(response.status_code))
+                self._cancel_confirm()
+        except requests.exceptions.ConnectionError:
+            self._show_error(tr("err_connection"))
+            self._cancel_confirm()
+        except requests.exceptions.Timeout:
+            self._show_error(tr("err_timeout"))
+            self._cancel_confirm()
+        except Exception:
+            self._show_error(tr("err_unexpected_retry"))
+            self._cancel_confirm()
+        finally:
+            self.confirm_yes_btn.setEnabled(True)
+            self.confirm_yes_btn.setText(tr("confirm_delete_yes_btn"))
+
+    def _cancel_confirm(self):
+        self.confirm_frame.hide()
+        self.modify_btn.show()
+        self.cancel_btn.show()
+        self.delete_btn.show()
 
     def _show_error(self, message):
         self.error_label.setText(message)

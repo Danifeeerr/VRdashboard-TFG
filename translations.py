@@ -97,6 +97,10 @@ _STRINGS = {
 
         "err_already_assigned": "Aquest usuari ja té aquest entrenament assignat.",
         "success_assigned": "Entrenament '{}' assignat correctament.",
+
+        "confirm_delete_msg": "Estàs segur que vols eliminar l'usuari {}?",
+        "confirm_delete_yes_btn": "Sí, eliminar",
+        "confirm_delete_no_btn": "No, cancel·lar",
     },
 
     "es": {
@@ -197,6 +201,10 @@ _STRINGS = {
 
         "err_already_assigned": "Este usuario ya tiene este entrenamiento asignado.",
         "success_assigned": "Entrenamiento '{}' asignado correctamente.",
+
+        "confirm_delete_msg": "¿Estás seguro de que quieres eliminar al usuario {}?",
+        "confirm_delete_yes_btn": "Sí, eliminar",
+        "confirm_delete_no_btn": "No, cancelar",
     },
 
     "en": {
@@ -297,6 +305,10 @@ _STRINGS = {
 
         "err_already_assigned": "This user already has this training assigned.",
         "success_assigned": "Training '{}' assigned successfully.",
+
+        "confirm_delete_msg": "Are you sure you want to delete user {}?",
+        "confirm_delete_yes_btn": "Yes, delete",
+        "confirm_delete_no_btn": "No, cancel",
     },
 }
 
